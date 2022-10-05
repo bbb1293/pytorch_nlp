@@ -1,0 +1,7 @@
+torch
+torchtext
+tqdm
+transformers
+datasets
+sklearn
+nltk
