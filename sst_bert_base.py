@@ -124,8 +124,9 @@ progress_bar = tqdm(range(len(test_dataloader)))
 
 for test_batch in test_dataloader:
     test_batch = {k: v.to(DEVICE) for k, v in test_batch.items()}
+    
     with torch.no_grad():
-        outputs = model(**val_batch)
+        outputs = model(**test_batch)
         
     logits = outputs.logits
     predictions = torch.argmax(logits, dim=-1)
@@ -161,7 +162,9 @@ for epoch in range(num_epochs):
         loss.backward()
         
         cur_train_loss += loss.item()
-        cur_val_loss += model(**val_batch).loss.item()
+        
+        with torch.no_grad():
+            cur_val_loss += model(**val_batch).loss.item()
         
         optimizer.step()
         lr_scheduler.step()
@@ -193,8 +196,9 @@ progress_bar = tqdm(range(len(test_dataloader)))
 
 for test_batch in test_dataloader:
     test_batch = {k: v.to(DEVICE) for k, v in test_batch.items()}
+    
     with torch.no_grad():
-        outputs = model(**val_batch)
+        outputs = model(**test_batch)
         
     logits = outputs.logits
     predictions = torch.argmax(logits, dim=-1)
