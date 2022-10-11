@@ -147,7 +147,7 @@ for epoch in range(num_epochs):
 
 import matplotlib.pyplot as plt
 
-plt.show(losses)
+plt.plot(losses)
 plt.savefig("loss.png")
 
 
