@@ -32,45 +32,6 @@ train_dataset = dataset["train"].shuffle(seed=SEED).select(range(train_data_cnt)
 test_dataset = dataset["validation"]
 
 
-# ## Data Augmentation by Backtranslation
-
-# In[ ]:
-
-
-def aug_by_backt(train_dataset, en_to_others, others_to_en):
-    
-    sentences = [train_data["sentence"] for train_data in train_dataset]
-    labels = [train_data["label"] for train_data in train_dataset]
-    sentences_len = len(sentences)
-    
-    aug_by_backt_train_dataset = train_dataset
-    for translator_idx in range(len(en_to_others)):
-        tmp_sentence = [tmp_data['translation_text'] for tmp_data in en_to_others[translator_idx](sentences)]
-        aug_sentence = [tmp_data['translation_text'] for tmp_data in others_to_en[translator_idx](tmp_sentence)]
-        
-        for sen_idx in range(sentences_len):
-            aug_data = {'sentence': aug_sentence[sen_idx], 'label': labels[sen_idx]}
-            aug_by_backt_train_dataset = aug_by_backt_train_dataset.add_item(aug_data)
-            
-    return aug_by_backt_train_dataset
-
-
-# In[ ]:
-
-
-from transformers import pipeline
-
-en_to_others = [pipeline("translation", model="Helsinki-NLP/opus-mt-en-fr"), pipeline("translation", model="Helsinki-NLP/opus-mt-en-de")]
-others_to_en = [pipeline("translation", model="Helsinki-NLP/opus-mt-fr-en"), pipeline("translation", model="Helsinki-NLP/opus-mt-de-en")]
-
-
-# In[ ]:
-
-
-# train_dataset = aug_by_backt(train_dataset, en_to_others, others_to_en)
-aug_train_dataset = aug_by_backt(train_dataset, en_to_others, others_to_en)
-
-
 # ## Data Augmentation by EDA
 
 # In[ ]:
@@ -82,11 +43,9 @@ aug_train_dataset = aug_by_backt(train_dataset, en_to_others, others_to_en)
 from eda import *
 
 # For the first time to load wordnet
-'''
 import nltk
 nltk.download('wordnet')
 nltk.download('omw-1.4')
-'''
 
 # Generate more data with EDA
 def aug_by_eda(train_dataset, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, alpha_rd=0.1, num_aug=9):
@@ -107,8 +66,8 @@ def aug_by_eda(train_dataset, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, alpha_rd
 # In[ ]:
 
 
-# train_dataset = aug_by_eda(train_dataset)
-aug_train_dataset = aug_by_eda(train_dataset)
+train_dataset = aug_by_eda(train_dataset)
+# aug_train_dataset = aug_by_eda(train_dataset)
 
 
 # ## Transform Dataset
@@ -232,7 +191,7 @@ import matplotlib.pyplot as plt
 plt.plot(train_losses, 'r')
 plt.plot(val_losses, 'g')
 
-plt.savefig("loss.png")
+plt.savefig("eda_loss.png")
 
 
 # ## Evaluate
