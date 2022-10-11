@@ -118,11 +118,13 @@ from tqdm.auto import tqdm
 
 progress_bar = tqdm(range(num_training_steps))
 
-losses = []
+train_losses = []
+val_losses = []
 
 model.train()
 for epoch in range(num_epochs):
-    cur_loss = 0.0
+    cur_train_loss = 0.0
+    cur_val_loss = 0.0
     
     for train_batch, val_batch in zip(train_dataloader, val_dataloader):
         train_batch = {k: v.to(DEVICE) for k, v in train_batch.items()}
@@ -132,22 +134,24 @@ for epoch in range(num_epochs):
         loss = outputs.loss
         loss.backward()
         
-        cur_loss += model(**val_batch).loss.item()
+        cur_train_loss += loss.item()
+        cur_val_loss += model(**val_batch).loss.item()
         
         optimizer.step()
         lr_scheduler.step()
         optimizer.zero_grad()
         progress_bar.update(1)
         
-    losses.append(cur_loss)
-
+    train_losses.append(cur_train_loss)
+    val_losses.append(cur_val_loss)
 
 # In[ ]:
 
 
 import matplotlib.pyplot as plt
 
-plt.plot(losses)
+plt.plot(train_losses, 'r')
+plt.plot(val_losses, 'g')
 plt.savefig("loss.png")
 
 
