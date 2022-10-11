@@ -102,19 +102,45 @@ optimizer = AdamW(model.parameters(), lr=learning_rate)
 
 from transformers import get_scheduler
 
-num_epochs = 100
+num_epochs = 200
 num_training_steps = num_epochs * len(train_dataloader)
 lr_scheduler = get_scheduler(
     name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
 )
 
 
-# ## Train
+# ## Evaluate before Training
 
 # In[ ]:
 
 
 from tqdm.auto import tqdm
+import evaluate
+
+metric = evaluate.load("accuracy")
+model.eval()
+
+progress_bar = tqdm(range(len(test_dataloader)))
+
+for test_batch in test_dataloader:
+    test_batch = {k: v.to(DEVICE) for k, v in test_batch.items()}
+    with torch.no_grad():
+        outputs = model(**val_batch)
+        
+    logits = outputs.logits
+    predictions = torch.argmax(logits, dim=-1)
+    metric.add_batch(predictions=predictions, references=test_batch["labels"])
+                    
+    progress_bar.update(1)
+    
+print(metric.compute())
+
+
+
+# ## Train
+
+# In[ ]:
+
 
 progress_bar = tqdm(range(num_training_steps))
 
@@ -160,9 +186,6 @@ plt.savefig("loss.png")
 # In[ ]:
 
 
-import evaluate
-from tqdm.auto import tqdm
-
 metric = evaluate.load("accuracy")
 model.eval()
 
@@ -179,5 +202,5 @@ for test_batch in test_dataloader:
                     
     progress_bar.update(1)
     
-metric.compute()
+print(metric.compute())
 
