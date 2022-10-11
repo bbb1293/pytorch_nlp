@@ -92,7 +92,7 @@ model.to(DEVICE)
 from torch.optim import AdamW
 
 learning_rate = 1e-5
-optim = AdamW(model.parameters(), lr=learning_rate)
+optimizer = AdamW(model.parameters(), lr=learning_rate)
 
 
 # In[ ]:
@@ -103,7 +103,7 @@ from transformers import get_scheduler
 num_epochs = 3
 num_training_steps = num_epochs * len(train_dataloader)
 lr_scheduler = get_scheduler(
-    name="linear", optimizer=optim, num_warmup_steps=0, num_training_steps=num_training_steps
+    name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
 )
 
 
