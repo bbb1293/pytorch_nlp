@@ -29,7 +29,7 @@ dataset = load_dataset("sst2")
 
 # idx, sentence, label
 train_dataset = dataset["train"].shuffle(seed=SEED).select(range(train_data_cnt))
-val_dataset = dataset["validation"]
+test_dataset = dataset["validation"]
 
 
 # ## Transform Dataset
@@ -46,7 +46,7 @@ def apply_transform(x):
     return tokenizer(x["sentence"], padding="max_length", truncation=True)
 
 tokenized_train_dataset = train_dataset.map(apply_transform, batched=True)
-tokenized_val_dataset = val_dataset.map(apply_transform, batched=True)
+tokenized_test_dataset = test_dataset.map(apply_transform, batched=True)
 
 
 # In[ ]:
@@ -55,20 +55,22 @@ tokenized_val_dataset = val_dataset.map(apply_transform, batched=True)
 # To fit the model's input
 tokenized_train_dataset = tokenized_train_dataset.remove_columns(['sentence', 'idx'])
 tokenized_train_dataset = tokenized_train_dataset.rename_column("label", "labels")
-tokenized_val_dataset = tokenized_val_dataset.remove_columns(['sentence', 'idx'])
-tokenized_val_dataset = tokenized_val_dataset.rename_column("label", "labels")
+tokenized_test_dataset = tokenized_test_dataset.remove_columns(['sentence', 'idx'])
+tokenized_test_dataset = tokenized_test_dataset.rename_column("label", "labels")
 
 # labels, input_ids, toekn_type_idx, attention_mask
 # Convert format to torch
 tokenized_train_dataset.set_format("torch")
-tokenized_val_dataset.set_format("torch")
+tokenized_test_dataset.set_format("torch")
 
 
 # In[ ]:
 
 
-train_dataloader = DataLoader(tokenized_train_dataset, batch_size=8, shuffle=None)
-val_dataloader = DataLoader(tokenized_val_dataset, batch_size=8, shuffle=None)
+tokenized_train_dataset = tokenized_train_dataset.train_test_split(test_size=0.5, shuffle=False)
+train_dataloader = DataLoader(tokenized_train_dataset["train"], batch_size=8, shuffle=None)
+val_dataloader = DataLoader(tokenized_train_dataset["test"], batch_size=8, shuffle=None)
+test_dataloader = DataLoader(tokenized_test_dataset, batch_size=8, shuffle=None)
 
 
 # ## Model Preparation
@@ -100,14 +102,54 @@ optimizer = AdamW(model.parameters(), lr=learning_rate)
 
 from transformers import get_scheduler
 
-num_epochs = 3
+num_epochs = 100
 num_training_steps = num_epochs * len(train_dataloader)
 lr_scheduler = get_scheduler(
     name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
 )
 
 
-# ## Evaluate before Training
+# ## Train
+
+# In[ ]:
+
+
+from tqdm.auto import tqdm
+
+progress_bar = tqdm(range(num_training_steps))
+
+losses = []
+
+model.train()
+for epoch in range(num_epochs):
+    cur_loss = 0.0
+    
+    for train_batch, val_batch in zip(train_dataloader, val_dataloader):
+        train_batch = {k: v.to(DEVICE) for k, v in train_batch.items()}
+        outputs = model(**train_batch)
+        loss = outputs.loss
+        loss.backward()
+        
+        cur_loss += model(**val_batch).loss.item()
+        
+        optimizer.step()
+        lr_scheduler.step()
+        optimizer.zero_grad()
+        progress_bar.update(1)
+        
+    losses.append(cur_loss)
+
+
+# In[ ]:
+
+
+import matplotlib.pyplot as plt
+
+plt.show(losses)
+plt.savefig("loss.png")
+
+
+# ## Evaluate
 
 # In[ ]:
 
@@ -118,63 +160,18 @@ from tqdm.auto import tqdm
 metric = evaluate.load("accuracy")
 model.eval()
 
-progress_bar = tqdm(range(len(val_dataloader)))
+progress_bar = tqdm(range(len(test_dataloader)))
 
-for val_batch in val_dataloader:
-    val_batch = {k: v.to(DEVICE) for k, v in val_batch.items()}
+for test_batch in test_dataloader:
+    test_batch = {k: v.to(DEVICE) for k, v in test_batch.items()}
     with torch.no_grad():
         outputs = model(**val_batch)
         
     logits = outputs.logits
     predictions = torch.argmax(logits, dim=-1)
-    metric.add_batch(predictions=predictions, references=val_batch["labels"])
+    metric.add_batch(predictions=predictions, references=test_batch["labels"])
                     
     progress_bar.update(1)
     
-print(metric.compute())
-
-
-# ## Train
-
-# In[ ]:
-
-
-progress_bar = tqdm(range(num_training_steps))
-
-model.train()
-for epoch in range(num_epochs):
-    for train_batch in train_dataloader:
-        train_batch = {k: v.to(DEVICE) for k, v in train_batch.items()}
-        outputs = model(**train_batch)
-        loss = outputs.loss
-        loss.backward()
-        
-        optimizer.step()
-        lr_scheduler.step()
-        optimizer.zero_grad()
-        progress_bar.update(1)
-
-
-# ## Evaluate
-
-# In[ ]:
-
-
-metric = evaluate.load("accuracy")
-model.eval()
-
-progress_bar = tqdm(range(len(val_dataloader)))
-
-for val_batch in val_dataloader:
-    val_batch = {k: v.to(DEVICE) for k, v in val_batch.items()}
-    with torch.no_grad():
-        outputs = model(**val_batch)
-        
-    logits = outputs.logits
-    predictions = torch.argmax(logits, dim=-1)
-    metric.add_batch(predictions=predictions, references=val_batch["labels"])
-                    
-    progress_bar.update(1)
-    
-print(metric.compute())
+metric.compute()
 
