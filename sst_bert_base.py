@@ -131,7 +131,7 @@ for val_batch in val_dataloader:
                     
     progress_bar.update(1)
     
-metric.compute()
+print(metric.compute())
 
 
 # ## Train
@@ -176,5 +176,5 @@ for val_batch in val_dataloader:
                     
     progress_bar.update(1)
     
-metric.compute()
+print(metric.compute())
 
