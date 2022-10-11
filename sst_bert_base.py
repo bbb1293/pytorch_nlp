@@ -126,6 +126,8 @@ for epoch in range(num_epochs):
     
     for train_batch, val_batch in zip(train_dataloader, val_dataloader):
         train_batch = {k: v.to(DEVICE) for k, v in train_batch.items()}
+        val_batch = {k: v.to(DEVICE) for k, v in val_batch.items()}
+        
         outputs = model(**train_batch)
         loss = outputs.loss
         loss.backward()
