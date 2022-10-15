@@ -284,9 +284,10 @@ def evaluate_model(model, test_dataloader):
 
         progress_bar.update(1)
 
-    print(metric.compute())
+    result = metric.compute()
+    print(result)
     
-    return metric.compute()
+    return result["accuracy"]
 
 
 # In[ ]:
