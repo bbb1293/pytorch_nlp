@@ -226,7 +226,7 @@ def train_model(model, train_dataloader, val_dataloader, optimizer, lr_scheduler
                 
                 if cur_val_loss < best_val_loss:
                     best_val_loss = cur_val_loss
-                    best_state_dict = model.state_dict
+                    best_state_dict = model.state_dict()
 
             optimizer.step()
             lr_scheduler.step()
