@@ -183,9 +183,11 @@ optimizer = AdamW(model.parameters(), lr=learning_rate)
 
 from transformers import get_scheduler
 
+'''
 lr_scheduler = get_scheduler(
     name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
 )
+'''
 
 
 # ## Train
