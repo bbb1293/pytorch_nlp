@@ -6,3 +6,4 @@ datasets
 sklearn
 nltk
 sentencepiece
+sacremoses
