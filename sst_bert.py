@@ -25,7 +25,7 @@ torch.manual_seed(SEED)
 from datasets import load_dataset
 from torch.utils.data import DataLoader 
 
-def load_dataset(seed=seed):
+def load_dataset(seed):
     dataset = load_dataset("sst2")
 
     # idx, sentence, label
@@ -51,7 +51,7 @@ others_to_en = [pipeline("translation", model="Helsinki-NLP/opus-mt-fr-en"), pip
 # In[ ]:
 
 
-def aug_by_backt(train_dataset=train_dataset, en_to_others=en_to_others, others_to_en=others_to_en):
+def aug_by_backt(train_dataset, en_to_others=en_to_others, others_to_en=others_to_en):
     
     sentences = [train_data["sentence"] for train_data in train_dataset]
     labels = [train_data["label"] for train_data in train_dataset]
@@ -127,7 +127,7 @@ tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
 def apply_transform(x):
     return tokenizer(x["sentence"], padding="max_length", truncation=True)
 
-def transform_datasets(train_dataset=train_dataset, test_dataset=test_dataset):
+def transform_datasets(train_dataset, test_dataset, seed):
     tokenized_train_dataset = train_dataset.map(apply_transform, batched=True)
     tokenized_test_dataset = test_dataset.map(apply_transform, batched=True)
     
@@ -142,7 +142,7 @@ def transform_datasets(train_dataset=train_dataset, test_dataset=test_dataset):
     tokenized_train_dataset.set_format("torch")
     tokenized_test_dataset.set_format("torch")
     
-    tokenized_train_dataset = tokenized_train_dataset.train_test_split(test_size=0.5, seed=SEED)
+    tokenized_train_dataset = tokenized_train_dataset.train_test_split(test_size=0.5, seed=seed)
     train_dataloader = DataLoader(tokenized_train_dataset["train"], batch_size=8, shuffle=None)
     val_dataloader = DataLoader(tokenized_train_dataset["test"], batch_size=8, shuffle=None)
     test_dataloader = DataLoader(tokenized_test_dataset, batch_size=8, shuffle=None)
@@ -195,7 +195,7 @@ lr_scheduler = get_scheduler(
 
 from tqdm.auto import tqdm
 
-def train_model(model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader, optimizer=optimizer, lr_scheduler=lr_scheduler, num_epochs=300):
+def train_model(model, train_dataloader, val_dataloader, optimizer, lr_scheduler, num_epochs=300):
     num_training_steps = num_epochs * len(train_dataloader)
     progress_bar = tqdm(range(num_training_steps))
 
@@ -262,7 +262,7 @@ def plot_train_val_loss(train_losses=train_losses, val_losses=val_losses):
 import evaluate
 from tqdm.auto import tqdm
 
-def evalute_model(model=model, test_dataloader=test_dataloader):
+def evalute_model(model, test_dataloader):
     metric = evaluate.load("accuracy")
     
     model.eval()
@@ -297,12 +297,12 @@ train_data_cnt = 32
 accuracy = 0.0
 
 for seed in range(10):
-    train_dataset, test_dataset = load_dataset()
+    train_dataset, test_dataset = load_dataset(seed=seed)
     
     # train_dataset = aug_by_backt()
     # train_dataset = aug_by_eda()
     
-    train_dataloader, val_dataloader, test_dataloader = transform_datasets()
+    train_dataloader, val_dataloader, test_dataloader = transform_datasets(train_dataset=train_dataset, test_dataset=test_dataset, seed=seed)
     
     model = AutoModelForSequenceClassification.from_pretrained("bert-base-cased", num_labels=2)
     model.to(DEVICE)
@@ -313,8 +313,8 @@ for seed in range(10):
         name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
     )
     
-    train_model()
-    accuracy += evaluate_model()
+    train_model(model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader, optimizer=optimizer, lr_scheduler=lr_scheduler)
+    accuracy += evaluate_model(model=mode, test_dataloader)
     
 print(accuracy / 10)
 
