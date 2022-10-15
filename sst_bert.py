@@ -25,7 +25,7 @@ torch.manual_seed(SEED)
 from datasets import load_dataset
 from torch.utils.data import DataLoader 
 
-def load_dataset(seed):
+def load_train_test_dataset(seed):
     dataset = load_dataset("sst2")
 
     # idx, sentence, label
@@ -301,7 +301,7 @@ train_data_cnt = 32
 accuracy = 0.0
 
 for seed in range(10):
-    train_dataset, test_dataset = load_dataset(seed=seed)
+    train_dataset, test_dataset = load_train_test_dataset(seed=seed)
     
     # train_dataset = aug_by_backt()
     # train_dataset = aug_by_eda()
