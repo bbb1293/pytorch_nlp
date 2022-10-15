@@ -248,10 +248,12 @@ def train_model(model, train_dataloader, val_dataloader, optimizer, lr_scheduler
 
 import matplotlib.pyplot as plt
 
+'''
 def plot_train_val_loss(train_losses=train_losses, val_losses=val_losses):
     plt.plot(train_losses, "r")
     plt.plot(val_losses, "g")
     plt.savefig("loss.png")
+'''
 
 # plot_train_val_loss()
 
