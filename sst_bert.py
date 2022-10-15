@@ -297,6 +297,7 @@ import torch.nn as nn
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 train_data_cnt = 32
+epoch = 300
 
 accuracy = 0.0
 
@@ -314,7 +315,7 @@ for seed in range(10):
     learning_rate = 1e-5
     optimizer = AdamW(model.parameters(), lr=learning_rate)
     lr_scheduler = get_scheduler(
-        name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=num_training_steps
+        name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=epoch*len(train_dataloader)
     )
     
     train_model(model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader, optimizer=optimizer, lr_scheduler=lr_scheduler)
