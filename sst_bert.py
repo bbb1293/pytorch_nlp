@@ -266,7 +266,7 @@ def plot_train_val_loss(train_losses=train_losses, val_losses=val_losses):
 import evaluate
 from tqdm.auto import tqdm
 
-def evalute_model(model, test_dataloader):
+def evaluate_model(model, test_dataloader):
     metric = evaluate.load("accuracy")
     
     model.eval()
