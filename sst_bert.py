@@ -314,7 +314,7 @@ for seed in range(10):
     )
     
     train_model(model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader, optimizer=optimizer, lr_scheduler=lr_scheduler)
-    accuracy += evaluate_model(model=mode, test_dataloader)
+    accuracy += evaluate_model(model=model, test_dataloader=test_dataloader)
     
 print(accuracy / 10)
 
