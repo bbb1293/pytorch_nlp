@@ -253,10 +253,10 @@ for seed in range(NUM_SEED):
     train_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA)
     
     if args.backt:
-        train_dataset = aug_by_backt()
+        train_dataset = aug_by_backt(train_dataset=train_dataset)
         
     if args.eda:
-        train_dataset = aug_by_eda()
+        train_dataset = aug_by_eda(train_dataset=train_dataset)
     
     train_dataloader, val_dataloader, test_dataloader = transform_datasets(train_dataset=train_dataset,
                                                                            test_dataset=test_dataset, 
