@@ -275,7 +275,7 @@ for seed in range(NUM_SEED):
     train_model(model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader,
                 optimizer=optimizer, lr_scheduler=lr_scheduler, num_epochs=NUM_EPOCHS)
     
-    cur_accuracy = evaludate_model(model=model, test_dataloader=test_dataloader)
+    cur_accuracy = evaluate_model(model=model, test_dataloader=test_dataloader)
     accuracy += cur_accuracy
     
     print(f"Seed {seed} accuracy: {cur_accuracy}")
