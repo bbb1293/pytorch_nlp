@@ -278,7 +278,18 @@ for seed in range(NUM_SEED):
     cur_accuracy = evaluate_model(model=model, test_dataloader=test_dataloader)
     accuracy += cur_accuracy
     
-    print(f"Seed {seed} accuracy: {cur_accuracy}")
+    print(f"seed {seed} accuracy: {cur_accuracy}")
+    
+if args.backt:
+    if args.eda:
+        print("Accuracy using backt and eda")
+    else:
+        print("Accuracy using backt")
+else:
+    if args.eda:
+        print("Accuracy using eda")
+    else:
+        print("Accuracy without augmentation")
     
 print(accuracy / NUM_SEED)
 
