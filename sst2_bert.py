@@ -269,7 +269,7 @@ for seed in range(NUM_SEED):
     # training method
     optimizer = AdamW(model.parameters(), lr=learning_rate)
     lr_scheduler = get_scheduler(
-        name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=epoch*len(train_dataloader)
+        name="linear", optimizer=optimizer, num_warmup_steps=0, num_training_steps=NUM_EPOCHS*len(train_dataloader)
     )
     
     train_model(model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader,
