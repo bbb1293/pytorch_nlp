@@ -280,5 +280,5 @@ for seed in range(NUM_SEED):
     
     print(f"Seed {seed} accuracy: {cur_accuracy}")
     
-print(accuracy / SEED_NUM)
+print(accuracy / NUM_SEED)
 
