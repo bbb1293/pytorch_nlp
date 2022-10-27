@@ -245,8 +245,8 @@ learning_rate = 1e-5
 GPU_NUM = args.gpu_num
 DEVICE = torch.device(f"cuda:{GPU_NUM}") if torch.cuda.is_available() else torch.device("cpu")
 NUM_TRAIN_DATA = args.num_train_data
-NUM_SEED = parser.num_seed
-NUM_EPOCHS = parser.num_epochs
+NUM_SEED = args.num_seed
+NUM_EPOCHS = args.num_epochs
 
 accuracy = 0.0
 for seed in range(NUM_SEED):
