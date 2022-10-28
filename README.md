@@ -10,15 +10,9 @@ You just simply use awesome packages such as datasets, transformers, etc.
 pip install -r requirements.txt
 ```
 
-## Execute
-
-If you want to see the options of the program
+## Usage
 
 ```bash
-python sst2_bert.py -h 
-```
-
-```console
 usage: sst2_bert.py [-h] [--gpu_num GPU_NUM] [--num_train_data NUM_TRAIN_DATA] [--num_seed NUM_SEED] [--num_epochs NUM_EPOCHS] [--backt] [--eda]
 
 Set some arguments for training
@@ -35,8 +29,16 @@ options:
   --eda                 augment training data by EDA
 ```
 
+## Examples
+
 If you want to see the result after training with augmented data by EDA with gpu 1
 
 ```bash
 python sst2_bert.py --gpu_num 1 --eda
+```
+
+If you want to see the result after training with augmented data by backtranslation with gpu 2, with 30 seeds, with 200 epochs
+
+```bash
+python sst2_bert.py --gpu_num 2 --backt --num_seed 30 --num_epochs 200
 ```
