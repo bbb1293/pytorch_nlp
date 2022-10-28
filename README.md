@@ -5,7 +5,7 @@ You don't need to download dataset or models by hand.
 
 You just simply use awesome packages such as datasets, transformers, etc.
 
-## Install Requirements
+## Requirements
 ```bash
 pip install -r requirements.txt
 ```
