@@ -12,6 +12,8 @@ pip install -r requirements.txt
 
 ## Execute
 
+If you want to see the options of the program
+
 ```bash
 python sst2_bert.py -h 
 ```
@@ -33,7 +35,7 @@ options:
   --eda                 augment training data by EDA
 ```
 
-If you want to see the result after training by data augmented by EDA with gpu 1
+If you want to see the result after training with augmented data by EDA with gpu 1
 
 ```bash
 python sst2_bert.py --gpu_num 1 --eda
