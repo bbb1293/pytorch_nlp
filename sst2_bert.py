@@ -11,6 +11,18 @@
 import torch
 import torch.nn as nn
 import os
+import argparse
+
+parser = argparse.ArgumentParser(description="Set some arguments for training")
+parser.add_argument("--gpu_num", type=int, help="gpu num you want to use", default=0)
+parser.add_argument("--num_train_data", type=int, help="the number of the training data", default=32)
+parser.add_argument("--num_seed", type=int, help="the number of the seeds", default=10)
+parser.add_argument("--num_epochs", type=int, help="the number of the epochs", default=300)
+parser.add_argument("--backt", action="store_true", help="augment training data by backtranslation")
+parser.add_argument("--eda", action="store_true", help="augment training data by EDA")
+parser.add_argument("--masked_lm", action="store_true", help="augment training data by masked language model")
+
+args = parser.parse_args()
 
 
 # ## Load Dataset
@@ -40,8 +52,9 @@ def load_train_test_dataset(seed, num_train_data):
 
 from transformers import pipeline
 
-en_to_others = [pipeline("translation", model="Helsinki-NLP/opus-mt-en-fr"), pipeline("translation", model="Helsinki-NLP/opus-mt-en-de")]
-others_to_en = [pipeline("translation", model="Helsinki-NLP/opus-mt-fr-en"), pipeline("translation", model="Helsinki-NLP/opus-mt-de-en")]
+if args.backt:
+    en_to_others = [pipeline("translation", model="Helsinki-NLP/opus-mt-en-fr"), pipeline("translation", model="Helsinki-NLP/opus-mt-en-de")]
+    others_to_en = [pipeline("translation", model="Helsinki-NLP/opus-mt-fr-en"), pipeline("translation", model="Helsinki-NLP/opus-mt-de-en")]
 
 
 # In[ ]:
@@ -79,9 +92,11 @@ def aug_by_backt(train_dataset, en_to_others=en_to_others, others_to_en=others_t
 from eda import *
 
 # For the first time to load wordnet
+'''
 import nltk
 nltk.download('wordnet')
 nltk.download('omw-1.4')
+'''
 
 # Generate more data with EDA
 def aug_by_eda(train_dataset, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, alpha_rd=0.1, num_aug=3):
@@ -109,8 +124,9 @@ def aug_by_eda(train_dataset, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, alpha_rd
 
 from transformers import pipeline
 
-masked_lm = pipeline('fill-mask', model='bert-base-uncased')
-# maked_lm("Hello I'm a [MASK] model.")
+if args.masked_lm:
+    masked_lm = pipeline('fill-mask', model='bert-base-uncased')
+    # maked_lm("Hello I'm a [MASK] model.")
 
 
 # In[ ]:
@@ -284,18 +300,6 @@ def evaluate_model(model, test_dataloader):
 from transformers import AutoModelForSequenceClassification, get_scheduler
 from torch.optim import AdamW
 from prettytable import PrettyTable
-import argparse
-
-parser = argparse.ArgumentParser(description="Set some arguments for training")
-parser.add_argument("--gpu_num", type=int, help="gpu num you want to use", default=0)
-parser.add_argument("--num_train_data", type=int, help="the number of the training data", default=32)
-parser.add_argument("--num_seed", type=int, help="the number of the seeds", default=10)
-parser.add_argument("--num_epochs", type=int, help="the number of the epochs", default=300)
-parser.add_argument("--backt", action="store_true", help="augment training data by backtranslation")
-parser.add_argument("--eda", action="store_true", help="augment training data by EDA")
-parser.add_argument("--masked_lm", action="store_true", help="augment training data by masked language model")
-
-args = parser.parse_args()
 
 learning_rate = 1e-5
 
