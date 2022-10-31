@@ -60,7 +60,7 @@ if args.backt:
 # In[ ]:
 
 
-def aug_by_backt(train_dataset, en_to_others=en_to_others, others_to_en=others_to_en):
+def aug_by_backt(train_dataset, en_to_others, others_to_en):
     
     sentences = [train_data["sentence"] for train_data in train_dataset]
     labels = [train_data["label"] for train_data in train_dataset]
@@ -126,7 +126,7 @@ from transformers import pipeline
 
 if args.masked_lm:
     masked_lm = pipeline('fill-mask', model='bert-base-uncased')
-    # maked_lm("Hello I'm a [MASK] model.")
+    # masked_lm("Hello I'm a [MASK] model.")
 
 
 # In[ ]:
@@ -134,7 +134,7 @@ if args.masked_lm:
 
 import numpy as np
 
-def aug_by_masked_lm(train_dataset, seed, aug_num=3, masked_lm=masked_lm):
+def aug_by_masked_lm(train_dataset, seed, masked_lm, aug_num=3):
     
     np.random.seed(seed)
     
@@ -170,7 +170,7 @@ def aug_by_masked_lm(train_dataset, seed, aug_num=3, masked_lm=masked_lm):
     return aug_by_masked_lm_train_dataset
 
 # train_dataset, test_dataset = load_train_test_dataset(0, 32)
-# aug_by_masked_lm(train_dataset, seed=0)
+# aug_by_masked_lm(train_dataset, seed=0, masked_lm=masked_lm)
 
 
 # ## Transform Dataset
@@ -314,13 +314,13 @@ for seed in range(NUM_SEED):
     train_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA)
     
     if args.backt:
-        train_dataset = aug_by_backt(train_dataset=train_dataset)
+        train_dataset = aug_by_backt(train_dataset=train_dataset, en_to_others=en_to_others, others_to_en=others_to_en)
         
     if args.eda:
         train_dataset = aug_by_eda(train_dataset=train_dataset)
         
     if args.masked_lm:
-        train_dataset = aug_by_masked_lm(train_dataset=train_dataset, seed=seed)
+        train_dataset = aug_by_masked_lm(train_dataset=train_dataset, seed=seed, masked_lm=masked_lm)
     
     train_dataloader, val_dataloader, test_dataloader = transform_datasets(train_dataset=train_dataset,
                                                                            test_dataset=test_dataset, 
