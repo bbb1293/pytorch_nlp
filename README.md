@@ -13,7 +13,8 @@ pip install -r requirements.txt
 ## Usage
 
 ```bash
-usage: sst2_bert.py [-h] [--gpu_num GPU_NUM] [--num_train_data NUM_TRAIN_DATA] [--num_seed NUM_SEED] [--num_epochs NUM_EPOCHS] [--backt] [--eda]
+(ml) udnet@dmcb-System:~/graduation/pytorch_nlp$ python sst2_bert.py -h
+usage: sst2_bert.py [-h] [--gpu_num GPU_NUM] [--num_train_data NUM_TRAIN_DATA] [--num_seed NUM_SEED] [--num_epochs NUM_EPOCHS] [--backt] [--eda] [--masked_lm]
 
 Set some arguments for training
 
@@ -27,6 +28,7 @@ options:
                         the number of the epochs
   --backt               augment training data by backtranslation
   --eda                 augment training data by EDA
+  --masked_lm           augment training data by masked language model
 ```
 
 ## Examples
