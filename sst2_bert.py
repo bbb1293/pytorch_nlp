@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # SST-2 Binary Text Classification with BERT Model (ref: [Transformers](https://huggingface.co/docs/transformers/training), [EDA](https://github.com/jasonwei20/eda_nlp))
+# # SST-2 Binary Text Classification with BERT Model (ref: [Transformers](https://huggingface.co/docs/transformers/training))
 
 # ## Common Imports
 
@@ -33,7 +33,7 @@ def load_train_test_dataset(seed, num_train_data):
 # train_dataset, test_dataset = load_dataset(seed=SEED)
 
 
-# ## Data Augmentation by Backtranslation
+# ## Data Augmentation by Backtranslation (ref: [En to Fr](https://huggingface.co/Helsinki-NLP/opus-mt-en-fr?text=My+name+is+Sarah+and+I+live+in+London), [Fr to En](https://huggingface.co/Helsinki-NLP/opus-mt-fr-en?text=Mon+nom+est+Wolfgang+et+je+vis+%C3%A0+Berlin))
 
 # In[ ]:
 
@@ -68,7 +68,7 @@ def aug_by_backt(train_dataset, en_to_others=en_to_others, others_to_en=others_t
 # aug_train_dataset = aug_by_backt(train_dataset, en_to_others, others_to_en)
 
 
-# ## Data Augmentation by EDA
+# ## Data Augmentation by EDA (ref: [EDA](https://github.com/jasonwei20/eda_nlp))
 
 # In[ ]:
 
@@ -102,6 +102,61 @@ def aug_by_eda(train_dataset, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, alpha_rd
 # aug_train_dataset = aug_by_eda(train_dataset)
 
 
+# ## Data Augmentation by masked language model (ref: [bert_base_uncased](https://huggingface.co/bert-base-uncased?text=what+the+%5BMASK%5D+good))
+
+# In[ ]:
+
+
+from transformers import pipeline
+
+masked_lm = pipeline('fill-mask', model='bert-base-uncased')
+# maked_lm("Hello I'm a [MASK] model.")
+
+
+# In[ ]:
+
+
+import numpy as np
+
+def aug_by_masked_lm(train_dataset, seed, aug_num=3, masked_lm=masked_lm):
+    
+    np.random.seed(seed)
+    
+    sentences = [train_data["sentence"] for train_data in train_dataset]
+    labels = [train_data["label"] for train_data in train_dataset]
+    sentences_len = len(sentences)
+    
+    aug_by_masked_lm_train_dataset = train_dataset
+    for idx in range(sentences_len):
+        splited_sentences = sentences[idx].split()
+        
+        for i in range(aug_num):
+            target_idx = np.random.choice(len(splited_sentences))
+            original_word = splited_sentences[target_idx]
+            
+            splited_sentences[target_idx] = "[MASK]"
+            
+            if labels[idx] == 1:
+                splited_sentences.append("positive")
+            else:
+                splited_sentences.append("negative")
+            
+            converted_sentence = " ".join(splited_sentences)
+            
+            converted_word = masked_lm(converted_sentence)[0]["token_str"]
+            splited_sentences[target_idx] = converted_word
+            
+            aug_data = {"sentence": " ".join(splited_sentences[:-1]), "label": labels[idx]}
+            aug_by_masked_lm_train_dataset.add_item(aug_data)
+            
+            splited_sentences[target_idx] = original_word
+        
+    return aug_by_masked_lm_train_dataset
+
+# train_dataset, test_dataset = load_train_test_dataset(0, 32)
+# aug_by_masked_lm(train_dataset, seed=0)
+
+
 # ## Transform Dataset
 
 # In[ ]:
@@ -125,7 +180,7 @@ def transform_datasets(train_dataset, test_dataset, seed):
     tokenized_test_dataset = tokenized_test_dataset.remove_columns(['sentence', 'idx'])
     tokenized_test_dataset = tokenized_test_dataset.rename_column("label", "labels")
 
-    # labels, input_ids, toekn_type_idx, attention_mask
+    # labels, input_ids, token_type_idx, attention_mask
     # Convert format to torch
     tokenized_train_dataset.set_format("torch")
     tokenized_test_dataset.set_format("torch")
@@ -228,6 +283,7 @@ def evaluate_model(model, test_dataloader):
 
 from transformers import AutoModelForSequenceClassification, get_scheduler
 from torch.optim import AdamW
+from prettytable import PrettyTable
 import argparse
 
 parser = argparse.ArgumentParser(description="Set some arguments for training")
@@ -237,6 +293,7 @@ parser.add_argument("--num_seed", type=int, help="the number of the seeds", defa
 parser.add_argument("--num_epochs", type=int, help="the number of the epochs", default=300)
 parser.add_argument("--backt", action="store_true", help="augment training data by backtranslation")
 parser.add_argument("--eda", action="store_true", help="augment training data by EDA")
+parser.add_argument("--masked_lm", action="store_true", help="augment training data by masked language model")
 
 args = parser.parse_args()
 
@@ -257,6 +314,9 @@ for seed in range(NUM_SEED):
         
     if args.eda:
         train_dataset = aug_by_eda(train_dataset=train_dataset)
+        
+    if args.masked_lm:
+        train_dataset = aug_by_masked_lm(train_dataset=train_dataset, seed=seed)
     
     train_dataloader, val_dataloader, test_dataloader = transform_datasets(train_dataset=train_dataset,
                                                                            test_dataset=test_dataset, 
@@ -278,18 +338,16 @@ for seed in range(NUM_SEED):
     cur_accuracy = evaluate_model(model=model, test_dataloader=test_dataloader)
     accuracy += cur_accuracy
     
-    print(f"seed {seed} accuracy: {cur_accuracy}")
+    print(f"Seed {seed} accuracy: {cur_accuracy}")
     
-if args.backt:
-    if args.eda:
-        print("Accuracy using backt and eda")
-    else:
-        print("Accuracy using backt")
-else:
-    if args.eda:
-        print("Accuracy using eda")
-    else:
-        print("Accuracy without augmentation")
-    
-print(accuracy / NUM_SEED)
+table_content = []    
+table_content.append("O" if args.backt else "X")
+table_content.append("O" if args.eda else "X")
+table_content.append("O" if args.masked_lm else "X")
+table_content.append(accuracy / NUM_SEED)
+
+my_table = PrettyTable(["Backtranslation", "EDA", "Masked language model", "Accuracy"])
+my_table.add_row(table_content)
+
+print(my_table)
 
