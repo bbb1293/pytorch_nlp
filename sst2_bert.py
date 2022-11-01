@@ -310,7 +310,7 @@ NUM_SEED = args.num_seed
 NUM_EPOCHS = args.num_epochs
 
 MODEL_FOLDER = "./sst2_bert/"
-if not os.exists(MODEL_FOLDER):
+if not os.path.exists(MODEL_FOLDER):
     os.mkdir(MODEL_FOLDER)
 
 accuracy = 0.0
@@ -332,7 +332,7 @@ for seed in range(NUM_SEED):
     
     # model preparation
     model_name = MODEl_FOLDER + 'model' + str(seed) + '.pth'
-    if os.exists(model_name):
+    if os.path.exists(model_name):
         model = torch.load(model_name)
     else:
         model = AutoModelForSequenceClassification.from_pretrained("bert-base-cased", num_labels=2)
