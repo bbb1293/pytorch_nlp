@@ -331,7 +331,7 @@ for seed in range(NUM_SEED):
                                                                            seed=seed)
     
     # model preparation
-    model_name = MODEl_FOLDER + 'model' + str(seed) + '.pth'
+    model_name = MODEL_FOLDER + 'model' + str(seed) + '.pth'
     if os.path.exists(model_name):
         model = torch.load(model_name)
     else:
