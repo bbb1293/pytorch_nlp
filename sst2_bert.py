@@ -315,6 +315,8 @@ if not os.path.exists(MODEL_FOLDER):
 
 accuracy = 0.0
 for seed in range(NUM_SEED):
+    torch.manual_seed(seed)
+    
     train_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA)
     
     if args.backt:
