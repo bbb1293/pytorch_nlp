@@ -313,7 +313,9 @@ MODEL_FOLDER = "./sst2_bert/"
 if not os.path.exists(MODEL_FOLDER):
     os.mkdir(MODEL_FOLDER)
 
-accuracy = 0.0
+accuracy = []
+acc_accuracy = 0.0
+
 for seed in range(NUM_SEED):
     torch.manual_seed(seed)
     
@@ -351,18 +353,19 @@ for seed in range(NUM_SEED):
                 optimizer=optimizer, lr_scheduler=lr_scheduler, num_epochs=NUM_EPOCHS)
     
     cur_accuracy = evaluate_model(model=model, test_dataloader=test_dataloader)
-    accuracy += cur_accuracy
-    
-    print(f"Seed {seed} accuracy: {cur_accuracy}")
+    acc_accuracy += cur_accuracy
+    accuracy.insert(accuracy)
     
 table_content = []    
 table_content.append("O" if args.backt else "X")
 table_content.append("O" if args.eda else "X")
 table_content.append("O" if args.masked_lm else "X")
-table_content.append(accuracy / NUM_SEED)
+table_content.append(acc_accuracy / NUM_SEED)
 
-my_table = PrettyTable(["Backtranslation", "EDA", "Masked language model", "Accuracy"])
+my_table = PrettyTable(["Backtranslation", "EDA", "Masked language model", "Average Accuracy"])
 my_table.add_row(table_content)
-
 print(my_table)
 
+my_table = PrettyTable([i for i in range(NUM_SEED)])
+my_table.add_row(accuracy)
+print(my_table)
