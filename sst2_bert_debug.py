@@ -327,7 +327,7 @@ for seed in range(NUM_SEED):
                                                                            seed=seed)
     
     for train_data in train_dataloader:
-        print(train_data)
+        print(hash(train_data))
     
     '''
     # model preparation
