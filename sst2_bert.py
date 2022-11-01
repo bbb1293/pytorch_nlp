@@ -310,7 +310,7 @@ NUM_SEED = args.num_seed
 NUM_EPOCHS = args.num_epochs
 
 MODEL_FOLDER = "./sst2_bert/"
-if !os.exists(MODEL_FOLDER):
+if not os.exists(MODEL_FOLDER):
     os.mkdir(MODEL_FOLDER)
 
 accuracy = 0.0
