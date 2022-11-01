@@ -309,6 +309,10 @@ NUM_TRAIN_DATA = args.num_train_data
 NUM_SEED = args.num_seed
 NUM_EPOCHS = args.num_epochs
 
+MODEL_FOLDER = "./sst2_bert/"
+if !os.exists(MODEL_FOLDER):
+    os.mkdir(MODEL_FOLDER)
+
 accuracy = 0.0
 for seed in range(NUM_SEED):
     train_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA)
@@ -327,7 +331,12 @@ for seed in range(NUM_SEED):
                                                                            seed=seed)
     
     # model preparation
-    model = AutoModelForSequenceClassification.from_pretrained("bert-base-cased", num_labels=2)
+    model_name = MODEl_FOLDER + 'model' + str(seed) + '.pth'
+    if os.exists(model_name):
+        model = torch.load(model_name)
+    else:
+        model = AutoModelForSequenceClassification.from_pretrained("bert-base-cased", num_labels=2)
+        torch.save(model_name)
     model.to(DEVICE)
     
     # training method
