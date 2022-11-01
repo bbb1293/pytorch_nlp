@@ -313,9 +313,6 @@ NUM_EPOCHS = args.num_epochs
 for seed in range(NUM_SEED):
     train_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA)
 
-    for train_data in train_dataset:
-        print(train_data)
-'''
     if args.backt:
         train_dataset = aug_by_backt(train_dataset=train_dataset, en_to_others=en_to_others, others_to_en=others_to_en)
         
@@ -329,6 +326,10 @@ for seed in range(NUM_SEED):
                                                                            test_dataset=test_dataset, 
                                                                            seed=seed)
     
+    for train_data in train_dataloader:
+        print(train_data)
+    
+    '''
     # model preparation
     model = AutoModelForSequenceClassification.from_pretrained("bert-base-cased", num_labels=2)
     model.to(DEVICE)
