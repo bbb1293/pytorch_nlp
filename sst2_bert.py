@@ -354,7 +354,7 @@ for seed in range(NUM_SEED):
     
     cur_accuracy = evaluate_model(model=model, test_dataloader=test_dataloader)
     acc_accuracy += cur_accuracy
-    accuracy.insert(cur_accuracy)
+    accuracy.append(cur_accuracy)
     
 table_content = []    
 table_content.append("O" if args.backt else "X")
