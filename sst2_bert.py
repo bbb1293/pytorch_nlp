@@ -336,7 +336,7 @@ for seed in range(NUM_SEED):
         model = torch.load(model_name)
     else:
         model = AutoModelForSequenceClassification.from_pretrained("bert-base-cased", num_labels=2)
-        torch.save(model_name)
+        torch.save(model, model_name)
     model.to(DEVICE)
     
     # training method
