@@ -366,6 +366,7 @@ my_table = PrettyTable(["Backtranslation", "EDA", "Masked language model", "Aver
 my_table.add_row(table_content)
 print(my_table)
 
-my_table = PrettyTable([i for i in range(NUM_SEED)])
-my_table.add_row(accuracy)
-print(my_table)
+for i in range((NUM_SEED + 4) // 5):
+    my_table = PrettyTable([j for j in range(i * 4, min((i + 1) * 4, NUM_SEED))])
+    my_table.add_row(accuracy[(i * 4): min((i + 1) * 4, NUM_SEED)])
+    print(my_table)
