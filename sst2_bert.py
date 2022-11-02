@@ -163,7 +163,7 @@ def aug_by_masked_lm(train_dataset, seed, masked_lm, aug_num=3):
             splited_sentences[target_idx] = converted_word
             
             aug_data = {"sentence": " ".join(splited_sentences[:-1]), "label": labels[idx]}
-            aug_by_masked_lm_train_dataset.add_item(aug_data)
+            aug_by_masked_lm_train_dataset = aug_by_masked_lm_train_dataset.add_item(aug_data)
             
             splited_sentences[target_idx] = original_word
         
