@@ -417,9 +417,10 @@ table_content = []
 table_content.append("O" if args.backt else "X")
 table_content.append("O" if args.eda else "X")
 table_content.append("O" if args.masked_lm else "X")
+table_content.append("O" if args.afinn else "X")
 table_content.append(acc_accuracy / NUM_SEED)
 
-my_table = PrettyTable(["Backtranslation", "EDA", "Masked language model", "Average Accuracy"])
+my_table = PrettyTable(["Backtranslation", "EDA", "Masked language model", "AFINN", "Average Accuracy"])
 my_table.add_row(table_content)
 print(my_table)
 
@@ -427,5 +428,4 @@ for i in range((NUM_SEED + 4) // 5):
     my_table = PrettyTable([j for j in range(i * 4, min((i + 1) * 4, NUM_SEED))])
     my_table.add_row(accuracy[(i * 4): min((i + 1) * 4, NUM_SEED)])
     print(my_table)
-print(my_table)
 
