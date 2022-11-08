@@ -8,3 +8,4 @@ nltk
 sentencepiece
 sacremoses
 prettytable
+afinn
