@@ -45,7 +45,7 @@ def load_train_test_dataset(seed, num_train_data):
     
     return (train_dataset, train_rest_dataset, test_dataset)
 
-train_dataset, train_rest_dataset, test_dataset = load_train_test_dataset(seed=0, num_train_data=32)
+# train_dataset, train_rest_dataset, test_dataset = load_train_test_dataset(seed=0, num_train_data=32)
 
 
 # ## Data Augmentation by Backtranslation (ref: [En to Fr](https://huggingface.co/Helsinki-NLP/opus-mt-en-fr?text=My+name+is+Sarah+and+I+live+in+London), [Fr to En](https://huggingface.co/Helsinki-NLP/opus-mt-fr-en?text=Mon+nom+est+Wolfgang+et+je+vis+%C3%A0+Berlin))
@@ -193,10 +193,20 @@ if args.afinn:
 from tqdm.auto import tqdm
 
 # Generate more data with AFIIN 
-def aug_by_afinn(train_dataset, unlabeled_dataset, afinn):
+def aug_by_afinn(train_dataset, unlabeled_dataset, afinn, data_num=1000):
+    data_num = min(data_num, len(unlabeled_dataset))
+    
+    cnt = 0
+    sentences = []
+    for unlabeled_data in unlabeled_dataset:
+        sentences.append(unlabeled_data["sentence"])
+        cnt += 1
+        
+        if cnt == data_num:
+            break
+    
     aug_sentences = []
     labels = []
-    sentences = [unlabeled_data["sentence"] for unlabeled_data in unlabeled_dataset]
     
     progress_bar = tqdm(range(len(sentences)))
     
