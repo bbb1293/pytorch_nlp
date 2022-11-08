@@ -193,32 +193,27 @@ if args.afinn:
 from tqdm.auto import tqdm
 
 # Generate more data with AFIIN 
-def aug_by_afinn(train_dataset, unlabeled_dataset, afinn, data_num=1000):
-    data_num = min(data_num, len(unlabeled_dataset))
-    
-    cnt = 0
-    sentences = []
-    for unlabeled_data in unlabeled_dataset:
-        sentences.append(unlabeled_data["sentence"])
-        cnt += 1
-        
-        if cnt == data_num:
-            break
-    
+def aug_by_afinn(train_dataset, unlabeled_dataset, afinn, data_num=500):
     aug_sentences = []
     labels = []
     
-    progress_bar = tqdm(range(len(sentences)))
+    data_num = min(data_num, len(unlabeled_dataset))
+    progress_bar = tqdm(range(data_num))
     
-    for sentence in sentences:
-        progress_bar.update(1)
+    for unlabeled_data in unlabeled_dataset:
+        sentence = unlabeled_data["sentence"]
         
         score = afinn.score(sentence)
         if score == 0:
             continue
             
+        cnt += 1
+        progress_bar.update(1)
         aug_sentences.append(sentence)
         labels.append(1 if score > 0 else 0)
+        
+        if cnt == data_num:
+            break
     
     aug_by_afinn_train_dataset = train_dataset
     
