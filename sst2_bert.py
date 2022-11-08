@@ -21,6 +21,7 @@ parser.add_argument("--num_epochs", type=int, help="the number of the epochs", d
 parser.add_argument("--backt", action="store_true", help="augment training data by backtranslation")
 parser.add_argument("--eda", action="store_true", help="augment training data by EDA")
 parser.add_argument("--masked_lm", action="store_true", help="augment training data by masked language model")
+parser.add_argument("--afinn", action="store_true", help="augment training data by AFIIN using unlabeled data")
 
 args = parser.parse_args()
 
@@ -37,12 +38,14 @@ def load_train_test_dataset(seed, num_train_data):
     dataset = load_dataset("sst2")
 
     # idx, sentence, label
-    train_dataset = dataset["train"].shuffle(seed=seed).select(range(num_train_data))
+    pre_train_dataset = dataset["train"].shuffle(seed=seed)
+    train_dataset = pre_train_dataset.select(range(num_train_data))
+    train_rest_dataset = pre_train_dataset.select(range(num_train_data, len(pre_train_dataset)))
     test_dataset = dataset["validation"]
     
-    return (train_dataset, test_dataset)
+    return (train_dataset, train_rest_dataset, test_dataset)
 
-# train_dataset, test_dataset = load_dataset(seed=SEED)
+train_dataset, train_rest_dataset, test_dataset = load_train_test_dataset(seed=0, num_train_data=32)
 
 
 # ## Data Augmentation by Backtranslation (ref: [En to Fr](https://huggingface.co/Helsinki-NLP/opus-mt-en-fr?text=My+name+is+Sarah+and+I+live+in+London), [Fr to En](https://huggingface.co/Helsinki-NLP/opus-mt-fr-en?text=Mon+nom+est+Wolfgang+et+je+vis+%C3%A0+Berlin))
@@ -117,7 +120,7 @@ def aug_by_eda(train_dataset, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, alpha_rd
 # aug_train_dataset = aug_by_eda(train_dataset)
 
 
-# ## Data Augmentation by masked language model (ref: [bert_base_uncased](https://huggingface.co/bert-base-uncased?text=what+the+%5BMASK%5D+good))
+# ## Data Augmentation by Masked Language Model (ref: [bert_base_uncased](https://huggingface.co/bert-base-uncased?text=what+the+%5BMASK%5D+good))
 
 # In[ ]:
 
@@ -171,6 +174,45 @@ def aug_by_masked_lm(train_dataset, seed, masked_lm, aug_num=3):
 
 # train_dataset, test_dataset = load_train_test_dataset(0, 32)
 # aug_by_masked_lm(train_dataset, seed=0, masked_lm=masked_lm)
+
+
+# ## Data Augmentation by AFINN using Unlabeled data (ref: [afinn](https://pypi.org/project/afinn/))
+
+# In[ ]:
+
+
+from afinn import Afinn
+
+if args.afinn:
+    afinn = Afinn()
+
+
+# In[ ]:
+
+
+# Generate more data with AFIIN 
+def aug_by_afinn(train_dataset, unlabeled_dataset, afinn):
+    aug_sentences = []
+    labels = []
+    sentences = [unlabeled_data["sentence"] for unlabeled_data in unlabeled_dataset]
+    
+    for sentence in sentences:
+        score = afinn.score(sentence)
+        if score == 0:
+            continue
+            
+        aug_sentences.append(sentence)
+        labels.append(1 if score > 0 else 0)
+    
+    aug_by_afinn_train_dataset = train_dataset
+    
+    for i in range(len(labels)):
+        aug_data = {'sentence': sentences[i], 'label': labels[i]}
+        aug_by_afinn_train_dataset = aug_by_afinn_train_dataset.add_item(aug_data)
+        
+    return aug_by_afinn_train_dataset
+    
+# aug_by_afinn(train_dataset, unlabeled_dataset, afinn)
 
 
 # ## Transform Dataset
@@ -319,7 +361,7 @@ acc_accuracy = 0.0
 for seed in range(NUM_SEED):
     torch.manual_seed(seed)
     
-    train_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA)
+    train_dataset, train_rest_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA)
     
     if args.backt:
         train_dataset = aug_by_backt(train_dataset=train_dataset, en_to_others=en_to_others, others_to_en=others_to_en)
@@ -329,6 +371,9 @@ for seed in range(NUM_SEED):
         
     if args.masked_lm:
         train_dataset = aug_by_masked_lm(train_dataset=train_dataset, seed=seed, masked_lm=masked_lm)
+        
+    if args.afinn:
+        train_dataset = aug_by_afinn(train_dataset=train_dataset, unlabeled_dataset=train_rest_dataset, afinn=afinn)
     
     train_dataloader, val_dataloader, test_dataloader = transform_datasets(train_dataset=train_dataset,
                                                                            test_dataset=test_dataset, 
@@ -370,3 +415,5 @@ for i in range((NUM_SEED + 4) // 5):
     my_table = PrettyTable([j for j in range(i * 4, min((i + 1) * 4, NUM_SEED))])
     my_table.add_row(accuracy[(i * 4): min((i + 1) * 4, NUM_SEED)])
     print(my_table)
+print(my_table)
+
