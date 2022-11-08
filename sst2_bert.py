@@ -190,13 +190,19 @@ if args.afinn:
 # In[ ]:
 
 
+from tqdm.auto import tqdm
+
 # Generate more data with AFIIN 
 def aug_by_afinn(train_dataset, unlabeled_dataset, afinn):
     aug_sentences = []
     labels = []
     sentences = [unlabeled_data["sentence"] for unlabeled_data in unlabeled_dataset]
     
+    progress_bar = tqdm(range(len(sentences)))
+    
     for sentence in sentences:
+        progress_bar.update(1)
+        
         score = afinn.score(sentence)
         if score == 0:
             continue
