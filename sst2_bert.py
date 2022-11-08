@@ -199,6 +199,7 @@ def aug_by_afinn(train_dataset, unlabeled_dataset, afinn, data_num=500):
     
     data_num = min(data_num, len(unlabeled_dataset))
     progress_bar = tqdm(range(data_num))
+    cnt = 0
     
     for unlabeled_data in unlabeled_dataset:
         sentence = unlabeled_data["sentence"]
