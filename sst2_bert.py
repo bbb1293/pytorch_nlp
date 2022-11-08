@@ -219,7 +219,7 @@ def aug_by_afinn(train_dataset, unlabeled_dataset, afinn, data_num=500):
     aug_by_afinn_train_dataset = train_dataset
     
     for i in range(len(labels)):
-        aug_data = {'sentence': sentences[i], 'label': labels[i]}
+        aug_data = {'sentence': aug_sentences[i], 'label': labels[i]}
         aug_by_afinn_train_dataset = aug_by_afinn_train_dataset.add_item(aug_data)
         
     return aug_by_afinn_train_dataset
