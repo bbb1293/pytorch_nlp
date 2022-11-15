@@ -18,6 +18,7 @@ parser.add_argument("--gpu_num", type=int, help="gpu num you want to use", defau
 parser.add_argument("--num_train_data", type=int, help="the number of the training data", default=32)
 parser.add_argument("--num_seed", type=int, help="the number of the seeds", default=10)
 parser.add_argument("--num_epochs", type=int, help="the number of the epochs", default=300)
+parser.add_argument("--num_aug", type=int, help="the number of augmentation data", default=3)
 parser.add_argument("--backt", action="store_true", help="augment training data by backtranslation")
 parser.add_argument("--eda", action="store_true", help="augment training data by EDA")
 parser.add_argument("--masked_lm", action="store_true", help="augment training data by masked language model")
@@ -63,19 +64,19 @@ if args.backt:
 # In[ ]:
 
 
-def aug_by_backt(train_dataset, en_to_others, others_to_en):
+def aug_by_backt(train_dataset, en_to_others, others_to_en, num_aug):
     
     sentences = [train_data["sentence"] for train_data in train_dataset]
     labels = [train_data["label"] for train_data in train_dataset]
     sentences_len = len(sentences)
     
     aug_by_backt_train_dataset = train_dataset
-    for translator_idx in range(len(en_to_others)):
-        tmp_sentence = [tmp_data['translation_text'] for tmp_data in en_to_others[translator_idx](sentences)]
-        aug_sentence = [tmp_data['translation_text'] for tmp_data in others_to_en[translator_idx](tmp_sentence)]
+    for i in range(num_aug):
+        tmp_sentences = [tmp_data['translation_text'] for tmp_data in en_to_others[i % len(en_to_others)](sentences)]
+        sentences = [tmp_data['translation_text'] for tmp_data in others_to_en[i % len(en_to_others)](tmp_sentences)]
         
         for sen_idx in range(sentences_len):
-            aug_data = {'sentence': aug_sentence[sen_idx], 'label': labels[sen_idx]}
+            aug_data = {'sentence': sentences[sen_idx], 'label': labels[sen_idx]}
             aug_by_backt_train_dataset = aug_by_backt_train_dataset.add_item(aug_data)
             
     return aug_by_backt_train_dataset
@@ -107,7 +108,7 @@ def aug_by_eda(train_dataset, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, alpha_rd
     labels = [train_data["label"] for train_data in train_dataset]
     
     aug_by_eda_train_dataset = train_dataset
-    aug_sentences = [eda(sentence) for sentence in sentences]
+    aug_sentences = [eda(sentence, alpha_sr=alpha_sr, alpha_ri=alpha_ri, alpha_rs=alpha_rs, alpha_rd=alpha_rd, num_aug=num_aug) for sentence in sentences]
     
     for i in range(len(labels)):
         for aug_sentence in aug_sentences[i]:
@@ -137,7 +138,7 @@ if args.masked_lm:
 
 import numpy as np
 
-def aug_by_masked_lm(train_dataset, seed, masked_lm, aug_num=3):
+def aug_by_masked_lm(train_dataset, seed, masked_lm, num_aug=3):
     
     np.random.seed(seed)
     
@@ -149,7 +150,7 @@ def aug_by_masked_lm(train_dataset, seed, masked_lm, aug_num=3):
     for idx in range(sentences_len):
         splited_sentences = sentences[idx].split()
         
-        for i in range(aug_num):
+        for i in range(num_aug):
             target_idx = np.random.choice(len(splited_sentences))
             original_word = splited_sentences[target_idx]
             
@@ -362,6 +363,7 @@ DEVICE = torch.device(f"cuda:{GPU_NUM}") if torch.cuda.is_available() else torch
 NUM_TRAIN_DATA = args.num_train_data
 NUM_SEED = args.num_seed
 NUM_EPOCHS = args.num_epochs
+NUM_AUG = args.num_aug
 
 MODEL_FOLDER = "./sst2_bert/"
 if not os.path.exists(MODEL_FOLDER):
@@ -376,13 +378,13 @@ for seed in range(NUM_SEED):
     train_dataset, train_rest_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA)
     
     if args.backt:
-        train_dataset = aug_by_backt(train_dataset=train_dataset, en_to_others=en_to_others, others_to_en=others_to_en)
+        train_dataset = aug_by_backt(train_dataset=train_dataset, en_to_others=en_to_others, others_to_en=others_to_en, num_aug=NUM_AUG)
         
     if args.eda:
-        train_dataset = aug_by_eda(train_dataset=train_dataset)
+        train_dataset = aug_by_eda(train_dataset=train_dataset, num_aug=NUM_AUG)
         
     if args.masked_lm:
-        train_dataset = aug_by_masked_lm(train_dataset=train_dataset, seed=seed, masked_lm=masked_lm)
+        train_dataset = aug_by_masked_lm(train_dataset=train_dataset, seed=seed, masked_lm=masked_lm, num_aug=NUM_AUG)
         
     if args.afinn:
         train_dataset = aug_by_afinn(train_dataset=train_dataset, unlabeled_dataset=train_rest_dataset, afinn=afinn)
