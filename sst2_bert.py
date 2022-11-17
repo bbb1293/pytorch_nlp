@@ -34,17 +34,17 @@ args = parser.parse_args()
 
 
 def preprocess_sst2(dataset):
-    dataset.remove_columns("idx")
+    dataset = dataset.remove_columns("idx")
     
 def preprocess_imdb(dataset):
-    dataset.rename_column("text", "sentence")
+    dataset = dataset.rename_column("text", "sentence")
 
 def merge_sentence(data):
     data["sentence"] = data["title"] + " " + data["content"]
     
 def preprocess_amazon_polarity(dataset):
-    dataset.map(merge_sentence)
-    dataset.remove_columns(["title", "content"])
+    dataset = dataset.map(merge_sentence)
+    dataset = dataset.remove_columns(["title", "content"])
     
 preprocess_dict = {"sst2": preprocess_sst2, "amazon_polarity": preprocess_amazon_polarity, "imdb": preprocess_imdb}
 
