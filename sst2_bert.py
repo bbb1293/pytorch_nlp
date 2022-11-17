@@ -35,9 +35,11 @@ args = parser.parse_args()
 
 def preprocess_sst2(dataset):
     dataset = dataset.remove_columns("idx")
+    return dataset
     
 def preprocess_imdb(dataset):
     dataset = dataset.rename_column("text", "sentence")
+    return dataset
 
 def merge_sentence(data):
     data["sentence"] = data["title"] + " " + data["content"]
@@ -45,6 +47,7 @@ def merge_sentence(data):
 def preprocess_amazon_polarity(dataset):
     dataset = dataset.map(merge_sentence)
     dataset = dataset.remove_columns(["title", "content"])
+    return dataset
     
 preprocess_dict = {"sst2": preprocess_sst2, "amazon_polarity": preprocess_amazon_polarity, "imdb": preprocess_imdb}
 
@@ -66,9 +69,9 @@ def load_train_test_dataset(seed, num_train_data, dataset_name):
     train_rest_dataset = pre_train_dataset.select(range(num_train_data, len(pre_train_dataset)))
     test_dataset = dataset["validation"]
     
-    preprocess_dict[dataset_name](pre_train_dataset)
-    preprocess_dict[dataset_name](train_dataset)
-    preprocess_dict[dataset_name](test_dataset)
+    pre_train_dataset = preprocess_dict[dataset_name](pre_train_dataset)
+    train_dataset = preprocess_dict[dataset_name](train_dataset)
+    test_dataset = preprocess_dict[dataset_name](test_dataset)
     
     return (train_dataset, train_rest_dataset, test_dataset)
 
