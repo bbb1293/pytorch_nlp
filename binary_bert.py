@@ -45,6 +45,7 @@ def preprocess_imdb(dataset):
 
 def merge_sentence(data):
     data["sentence"] = data["title"] + " " + data["content"]
+    return data
     
 def preprocess_amazon_polarity(dataset):
     dataset = dataset.map(merge_sentence)
