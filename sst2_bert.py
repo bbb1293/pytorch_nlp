@@ -14,7 +14,7 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser(description="Set some arguments for training")
-parser.add_argument("--dataset_name", type=str, help="dataset name you want to use", default='sst2')
+parser.add_argument("--dataset_name", type=str, help="the name of dataset you want to use (ex. sst2, amazon_polarity, imdb)", default='sst2')
 parser.add_argument("--gpu_num", type=int, help="gpu num you want to use", default=0)
 parser.add_argument("--num_train_data", type=int, help="the number of the training data", default=32)
 parser.add_argument("--num_seed", type=int, help="the number of the seeds", default=10)
