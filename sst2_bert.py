@@ -14,6 +14,7 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser(description="Set some arguments for training")
+parser.add_argument("--dataset_name", type=str, help="dataset name you want to use", default='sst2')
 parser.add_argument("--gpu_num", type=int, help="gpu num you want to use", default=0)
 parser.add_argument("--num_train_data", type=int, help="the number of the training data", default=32)
 parser.add_argument("--num_seed", type=int, help="the number of the seeds", default=10)
@@ -27,6 +28,27 @@ parser.add_argument("--afinn", action="store_true", help="augment training data 
 args = parser.parse_args()
 
 
+# ## Preprocess Dataset
+
+# In[ ]:
+
+
+def preprocess_sst2(dataset):
+    dataset.remove_columns("idx")
+    
+def preprocess_imdb(dataset):
+    dataset.rename_column("text", "sentence")
+
+def merge_sentence(data):
+    data["sentence"] = data["title"] + " " + data["content"]
+    
+def preprocess_amazon_polarity(dataset):
+    dataset.map(merge_sentence)
+    dataset.remove_columns(["title", "content"])
+    
+preprocess_dict = {"sst2": preprocess_sst2, "amazon_polarity": preprocess_amazon_polarity, "imdb": preprocess_imdb}
+
+
 # ## Load Dataset
 
 # In[ ]:
@@ -35,14 +57,18 @@ args = parser.parse_args()
 from datasets import load_dataset
 from torch.utils.data import DataLoader 
 
-def load_train_test_dataset(seed, num_train_data):
-    dataset = load_dataset("sst2")
+def load_train_test_dataset(seed, num_train_data, dataset_name):
+    dataset = load_dataset(dataset_name)
 
     # idx, sentence, label
     pre_train_dataset = dataset["train"].shuffle(seed=seed)
     train_dataset = pre_train_dataset.select(range(num_train_data))
     train_rest_dataset = pre_train_dataset.select(range(num_train_data, len(pre_train_dataset)))
     test_dataset = dataset["validation"]
+    
+    preprocess_dict[dataset_name](pre_train_dataset)
+    preprocess_dict[dataset_name](train_dataset)
+    preprocess_dict[dataset_name](test_dataset)
     
     return (train_dataset, train_rest_dataset, test_dataset)
 
@@ -246,9 +272,9 @@ def transform_datasets(train_dataset, test_dataset, seed):
     tokenized_test_dataset = test_dataset.map(apply_transform, batched=True)
     
     # To fit the model's input
-    tokenized_train_dataset = tokenized_train_dataset.remove_columns(['sentence', 'idx'])
+    tokenized_train_dataset = tokenized_train_dataset.remove_columns('sentence')
     tokenized_train_dataset = tokenized_train_dataset.rename_column("label", "labels")
-    tokenized_test_dataset = tokenized_test_dataset.remove_columns(['sentence', 'idx'])
+    tokenized_test_dataset = tokenized_test_dataset.remove_columns('sentence')
     tokenized_test_dataset = tokenized_test_dataset.rename_column("label", "labels")
 
     # labels, input_ids, token_type_idx, attention_mask
@@ -358,6 +384,7 @@ from prettytable import PrettyTable
 
 learning_rate = 1e-5
 
+DATASET_NAME = args.dataset_name
 GPU_NUM = args.gpu_num
 DEVICE = torch.device(f"cuda:{GPU_NUM}") if torch.cuda.is_available() else torch.device("cpu")
 NUM_TRAIN_DATA = args.num_train_data
@@ -365,7 +392,7 @@ NUM_SEED = args.num_seed
 NUM_EPOCHS = args.num_epochs
 NUM_AUG = args.num_aug
 
-MODEL_FOLDER = "./sst2_bert/"
+MODEL_FOLDER = "./bert_model/"
 if not os.path.exists(MODEL_FOLDER):
     os.mkdir(MODEL_FOLDER)
 
@@ -375,7 +402,7 @@ acc_accuracy = 0.0
 for seed in range(NUM_SEED):
     torch.manual_seed(seed)
     
-    train_dataset, train_rest_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA)
+    train_dataset, train_rest_dataset, test_dataset = load_train_test_dataset(seed=seed, num_train_data=NUM_TRAIN_DATA, dataset_name=DATASET_NAME)
     
     if args.backt:
         train_dataset = aug_by_backt(train_dataset=train_dataset, en_to_others=en_to_others, others_to_en=others_to_en, num_aug=NUM_AUG)
@@ -415,19 +442,22 @@ for seed in range(NUM_SEED):
     acc_accuracy += cur_accuracy
     accuracy.append(cur_accuracy)
     
+for i in range((NUM_SEED + 4) // 5):
+    my_table = PrettyTable([j for j in range(i * 5, min((i + 1) * 5, NUM_SEED))])
+    my_table.add_row(accuracy[(i * 5): min((i + 1) * 5, NUM_SEED)])
+    print(my_table)
+    
 table_content = []    
+table_content.append(DATASET_NAME)
 table_content.append("O" if args.backt else "X")
 table_content.append("O" if args.eda else "X")
 table_content.append("O" if args.masked_lm else "X")
 table_content.append("O" if args.afinn else "X")
 table_content.append(acc_accuracy / NUM_SEED)
 
-my_table = PrettyTable(["Backtranslation", "EDA", "Masked language model", "AFINN", "Average Accuracy"])
+my_table = PrettyTable(["Dataset_name", "Backtranslation", "EDA", "Masked language model", "AFINN", "Average Accuracy"])
 my_table.add_row(table_content)
 print(my_table)
 
-for i in range((NUM_SEED + 4) // 5):
-    my_table = PrettyTable([j for j in range(i * 4, min((i + 1) * 4, NUM_SEED))])
-    my_table.add_row(accuracy[(i * 4): min((i + 1) * 4, NUM_SEED)])
-    print(my_table)
+print(accuracy)
 
