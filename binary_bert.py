@@ -135,12 +135,12 @@ nltk.download('omw-1.4')
 '''
 
 # Generate more data with EDA
-def aug_by_eda(train_dataset, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, alpha_rd=0.1, num_aug=3):
+def aug_by_eda(train_dataset, alpha_sr=0.1, alpha_ri=0.1, alpha_rs=0.1, p_rd=0.1, num_aug=3):
     sentences = [train_data["sentence"] for train_data in train_dataset]
     labels = [train_data["label"] for train_data in train_dataset]
     
     aug_by_eda_train_dataset = train_dataset
-    aug_sentences = [eda(sentence, alpha_sr=alpha_sr, alpha_ri=alpha_ri, alpha_rs=alpha_rs, alpha_rd=alpha_rd, num_aug=num_aug) for sentence in sentences]
+    aug_sentences = [eda(sentence, alpha_sr=alpha_sr, alpha_ri=alpha_ri, alpha_rs=alpha_rs, p_rd=p_rd, num_aug=num_aug) for sentence in sentences]
     
     for i in range(len(labels)):
         for aug_sentence in aug_sentences[i]:
