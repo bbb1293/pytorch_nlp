@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # SST-2 Binary Text Classification with BERT Model (ref: [Transformers](https://huggingface.co/docs/transformers/training))
+# # Binary Text Classification with BERT Model (ref: [Transformers](https://huggingface.co/docs/transformers/training))
+# 
+# Using [sst2](https://huggingface.co/datasets/sst2), [imdb](https://huggingface.co/datasets/imdb), [amazon_polarity](https://huggingface.co/datasets/amazon_polarity)
 
 # ## Common Imports
 
