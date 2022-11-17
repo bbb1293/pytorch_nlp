@@ -67,7 +67,7 @@ def load_train_test_dataset(seed, num_train_data, dataset_name):
     pre_train_dataset = dataset["train"].shuffle(seed=seed)
     train_dataset = pre_train_dataset.select(range(num_train_data))
     train_rest_dataset = pre_train_dataset.select(range(num_train_data, len(pre_train_dataset)))
-    test_dataset = dataset["validation"]
+    test_dataset = dataset["validation"] if "validation" in dataset else dataset["test"]
     
     pre_train_dataset = preprocess_dict[dataset_name](pre_train_dataset)
     train_dataset = preprocess_dict[dataset_name](train_dataset)
