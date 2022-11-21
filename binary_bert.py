@@ -104,8 +104,8 @@ def aug_by_backt(train_dataset, en_to_others, others_to_en, num_aug):
     
     aug_by_backt_train_dataset = train_dataset
     for i in range(num_aug):
-        tmp_sentences = [tmp_data['translation_text'] for tmp_data in en_to_others[i % len(en_to_others)](sentences)]
-        sentences = [tmp_data['translation_text'] for tmp_data in others_to_en[i % len(en_to_others)](tmp_sentences)]
+        tmp_sentences = [tmp_data['translation_text'] for tmp_data in en_to_others[i % len(en_to_others)](sentences, max_length=1000)]
+        sentences = [tmp_data['translation_text'] for tmp_data in others_to_en[i % len(en_to_others)](tmp_sentences, max_length=1000)]
         
         for sen_idx in range(sentences_len):
             aug_data = {'sentence': sentences[sen_idx], 'label': labels[sen_idx]}
