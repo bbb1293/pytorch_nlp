@@ -35,12 +35,19 @@ args = parser.parse_args()
 # In[ ]:
 
 
+def cut_sentence(data):
+    sentence_list = data["sentence"].split()
+    data["sentence"] = ' '.join(sentence_list[:min(512, len(sentence_list))])
+    return data
+
 def preprocess_sst2(dataset):
     dataset = dataset.remove_columns("idx")
+    dataset = dataset.map(cut_sentence)
     return dataset
     
 def preprocess_imdb(dataset):
     dataset = dataset.rename_column("text", "sentence")
+    dataset = dataset.map(cut_sentence)
     return dataset
 
 def merge_sentence(data):
@@ -50,6 +57,7 @@ def merge_sentence(data):
 def preprocess_amazon_polarity(dataset):
     dataset = dataset.map(merge_sentence)
     dataset = dataset.remove_columns(["title", "content"])
+    dataset = dataset.map(cut_sentence)
     return dataset
     
 preprocess_dict = {"sst2": preprocess_sst2, "amazon_polarity": preprocess_amazon_polarity, "imdb": preprocess_imdb}
