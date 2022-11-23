@@ -99,7 +99,7 @@ if args.backt:
 
 def aug_by_backt(train_dataset, en_to_others, others_to_en, num_aug):
     
-    sentences = [train_data["sentence"][:min(len(train_data["sentence"], 512))] for train_data in train_dataset]
+    sentences = [train_data["sentence"][:min(len(train_data["sentence"]), 512)] for train_data in train_dataset]
     labels = [train_data["label"] for train_data in train_dataset]
     sentences_len = len(sentences)
     
