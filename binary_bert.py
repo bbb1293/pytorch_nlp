@@ -98,13 +98,7 @@ if args.backt:
 
 def aug_by_backt(train_dataset, en_to_others, others_to_en, num_aug):
     
-    sentences = []
-    for train_data in train_dataset:
-        words = train_data["sentence"].split()
-        words = words[:min(512, len(words))]
-        sentence = ' '.join(words)
-        sentences.append(sentence)
-    
+    sentences = [train_data["sentence"][:min(512, len(train_data["sentence"]))] for train_data in train_dataset]
     labels = [train_data["label"] for train_data in train_dataset]
     sentences_len = len(sentences)
     
@@ -180,13 +174,7 @@ def aug_by_masked_lm(train_dataset, seed, masked_lm, num_aug=3):
     
     np.random.seed(seed)
     
-    sentences = []
-    for train_data in train_dataset:
-        words = train_data["sentence"].split()
-        words = words[:min(512, len(words))]
-        sentence = ' '.join(words)
-        sentences.append(sentence)
-    
+    sentences = [train_data["sentence"][:min(512, len(train_data["sentence"]))] for train_data in train_dataset]
     labels = [train_data["label"] for train_data in train_dataset]
     sentences_len = len(sentences)
     
