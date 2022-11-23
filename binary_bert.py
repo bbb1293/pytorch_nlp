@@ -35,7 +35,6 @@ args = parser.parse_args()
 # In[ ]:
 
 
-
 def preprocess_sst2(dataset):
     dataset = dataset.remove_columns("idx")
     return dataset
@@ -99,14 +98,20 @@ if args.backt:
 
 def aug_by_backt(train_dataset, en_to_others, others_to_en, num_aug):
     
-    sentences = [train_data["sentence"][:min(len(train_data["sentence"]), 512)] for train_data in train_dataset]
+    sentences = []
+    for train_data in train_dataset:
+        words = train_data["sentence"].split()
+        words = words[:min(512, len(words))]
+        sentence = ' '.join(words)
+        sentences.append(sentence)
+    
     labels = [train_data["label"] for train_data in train_dataset]
     sentences_len = len(sentences)
     
     aug_by_backt_train_dataset = train_dataset
     for i in range(num_aug):
-        tmp_sentences = [tmp_data['translation_text'] for tmp_data in en_to_others[i % len(en_to_others)](sentences, max_length=1000)]
-        sentences = [tmp_data['translation_text'] for tmp_data in others_to_en[i % len(en_to_others)](tmp_sentences, max_length=1000)]
+        tmp_sentences = [tmp_data['translation_text'] for tmp_data in en_to_others[i % len(en_to_others)](sentences)]
+        sentences = [tmp_data['translation_text'] for tmp_data in others_to_en[i % len(en_to_others)](tmp_sentences)]
         
         for sen_idx in range(sentences_len):
             aug_data = {'sentence': sentences[sen_idx], 'label': labels[sen_idx]}
@@ -175,7 +180,13 @@ def aug_by_masked_lm(train_dataset, seed, masked_lm, num_aug=3):
     
     np.random.seed(seed)
     
-    sentences = [train_data["sentence"] for train_data in train_dataset]
+    sentences = []
+    for train_data in train_dataset:
+        words = train_data["sentence"].split()
+        words = words[:min(512, len(words))]
+        sentence = ' '.join(words)
+        sentences.append(sentence)
+    
     labels = [train_data["label"] for train_data in train_dataset]
     sentences_len = len(sentences)
     
